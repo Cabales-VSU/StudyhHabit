@@ -1,78 +1,35 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
-type OAuthCallbackResult =
-| {
-    type: 'redirect'
-    url: string
-}
-| {
-    type: 'error'
-    fallback: string
-  }
+export async function handleOAuthCallback(request: Request) {
+  const requestUrl = new URL(request.url)
+  const code = requestUrl.searchParams.get('code')
+  // This grabs the "/dashboard" we sent from the Google Button
+  const next = requestUrl.searchParams.get('next') ?? '/dashboard'
 
-
-export async function handleOAuthCallback(
-  request: Request
-): Promise<OAuthCallbackResult> {
-  const url = new URL(request.url)
-  const code = url.searchParams.get('code')
-  const error = url.searchParams.get('error')
-  const origin = url.origin
-
-  if (error) {
-    console.error('OAuth error in callback:', {
-      error,
-      error_code: url.searchParams.get('error_code'),
-      error_description: url.searchParams.get('error_description')
-    })
-    return { type: 'error', fallback: `${origin}/error` }
-  }
-
-  if (!code) {
-    console.error('No code provided in OAuth callback')
-    return { type: 'error', fallback: `${origin}/error` }
-  }
-
-  const supabase = await createClient()
-  
-  try {
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-
-    if (exchangeError) {
-      console.error('OAuth exchange failed:', exchangeError)
-      return { type: 'error', fallback: `${origin}/error` }
-    }
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (code) {
+    const cookieStore = cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      {
+        cookies: {
+          get(name: string) { return cookieStore.get(name)?.value },
+          set(name: string, value: string, options: any) { cookieStore.set({ name, value, ...options }) },
+          remove(name: string, options: any) { cookieStore.set({ name, value: '', ...options }) },
+        },
+      }
+    )
     
-    if (userError || !user) {
-      console.error('Failed to get user after exchange:', userError)
-      return { type: 'error', fallback: `${origin}/error` }
+    // Exchange the code for a real session
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    
+    if (!error) {
+      // SUCCESS: Route to /dashboard
+      return { type: 'redirect', url: new URL(next, request.url).toString() }
     }
-
-    // Just check if profile exists (no role logic anymore)
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (profileError) {
-      console.error('Profile fetch failed:', profileError)
-      return { type: 'error', fallback: `${origin}/error` }
-    }
-
-    const hasProfile = !!profile
-
-    return {
-      type: 'redirect',
-      url: hasProfile
-        ? `${origin}/dashboard`
-        : `${origin}/sign-up`,
-    }
-
-  } catch (err) {
-    console.error('Unexpected error in OAuth callback:', err)
-    return { type: 'error', fallback: `${origin}/error` }
   }
+
+  // FAIL: Route back to login
+  return { type: 'fallback', fallback: new URL('/login', request.url).toString() }
 }

@@ -9,7 +9,7 @@ interface GoogleButtonProps {
 }
 
 export default function GoogleButton({
-  nextRoute = "/dashboard",
+  nextRoute = "/dashboard/timer",
   text = "Google",
 }: GoogleButtonProps) {
   const [isLoading, setIsLoading] = useState(false);

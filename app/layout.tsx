@@ -1,50 +1,30 @@
 import type { Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans, Instrument_Sans, Nunito } from "next/font/google";
 import "./globals.css";
 
-// Recommended fonts for study/learning apps:
-
-// 1. Inter - Clean, modern, highly readable (most popular)
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-// 2. Plus Jakarta Sans - Friendly, modern, great for SaaS
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
-  subsets: ["latin"],
-});
-
-// 3. Instrument Sans - Clean with slight personality
-const instrumentSans = Instrument_Sans({
-  variable: "--font-instrument",
-  subsets: ["latin"],
-});
-
-// 4. Nunito - Rounded, friendly, approachable
-const nunito = Nunito({
-  variable: "--font-nunito",
-  subsets: ["latin"],
-});
-
-// Choose one font (I recommend Inter or Plus Jakarta Sans)
 export const metadata: Metadata = {
-  title: "StudyTrack - Track Your Learning Journey",
-  description: "Build better study habits and track your progress",
+  title: "StudyBit",
+  description: "Collaborative Study Gamification Platform",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col font-sans">
+    <html lang="en">
+      <head>
+        {/* Preconnect to Font Servers */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Load all 4 required fonts in a single combined network request at runtime */}
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&family=Inter:wght@100..900&family=Nunito:wght@200..1000&family=Plus+Jakarta+Sans:wght@200..800&display=swap" 
+          rel="stylesheet" 
+        />
+      </head>
+      <body className="antialiased">
         {children}
       </body>
     </html>

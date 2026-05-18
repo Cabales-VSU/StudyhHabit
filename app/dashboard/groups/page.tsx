@@ -172,10 +172,11 @@ export default function GroupsPage() {
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <InputField 
-                      placeholder="Enter Group ID" 
-                      icon={<Hash size={18} />} 
-                      value={joinId} 
-                      onChange={(e) => setJoinId(e.target.value)}
+                      placeholder="Enter Group ID"
+                      icon={<Hash size={18} />}
+                      value={joinId}
+                      onChange={(e) => setJoinId(e.target.value)} 
+                      label={""}
                     />
                   </div>
                   <Button 
@@ -200,6 +201,7 @@ export default function GroupsPage() {
                   icon={<Plus size={18} />} 
                   value={newGroupName} 
                   onChange={(e) => setNewGroupName(e.target.value)}
+                  label={""}
                 />
                 <Button 
                   onClick={handleCreate} 

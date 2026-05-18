@@ -129,6 +129,7 @@ export default function ProfilePage() {
               icon={<CreditCard size={18} />} 
               value={displayName} 
               onChange={(e) => setDisplayName(e.target.value)}
+              label={""}
             />
           </div>
 
@@ -139,6 +140,7 @@ export default function ProfilePage() {
               icon={<AtSign size={18} />} 
               value={username} 
               onChange={(e) => setUsername(e.target.value)}
+              label={""}
             />
           </div>
         </div>

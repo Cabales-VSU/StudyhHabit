@@ -1,10 +1,11 @@
 import { supabase } from "../supabase/client";
 
 /**
- * Fetches general profile stats (minutes/streaks) and the last 5 sessions.
+ * Fetches general profile stats (minutes/streaks), the last 5 sessions, 
+ * and calculates the true lifetime total minutes.
  */
 export async function getUserStats(userId: string) {
-  // 1. Get profile data
+  // 1. Get profile data (Still needed for the streak!)
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("overall_study_minutes, current_streak")
@@ -23,9 +24,23 @@ export async function getUserStats(userId: string) {
 
   if (sessionError) throw sessionError;
 
+  // 3. GET ALL SESSIONS TO CALCULATE REAL LIFETIME MINUTES
+  const { data: allSessions, error: allSessionsError } = await supabase
+    .from("study_sessions")
+    .select("duration_minutes")
+    .eq("user_id", userId);
+
+  if (allSessionsError) throw allSessionsError;
+
+  // Reduce the array to get the true sum of all logged minutes
+  const calculated_total = allSessions?.reduce((sum, session) => {
+    return sum + (session.duration_minutes || 0);
+  }, 0) || 0;
+
   return {
     profile,
-    sessions
+    sessions,
+    calculated_total // Passing the newly calculated total to the frontend
   };
 }
 
